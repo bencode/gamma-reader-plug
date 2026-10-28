@@ -15,4 +15,6 @@ export type PluginCard = {
   summary: string
   icon: string
   status: PluginStatus
+  // What the reading assistant is given, word for word as the manifest lists it.
+  tools: { name: string; description: string }[]
 }
