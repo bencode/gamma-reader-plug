@@ -38,12 +38,23 @@ export const App = () => {
             GitHub
           </a>
         </div>
-        <p className={styles.intro}>
-          {/* Chinese takes no space where a line breaks, so each line is its own string. */}
-          {'连接一个插件后，回到 Gamma Reader，对话输入框下方会出现它的图标。'}
-          {'在哪个对话里打开它，那个对话的阅读助手就能用它。连接只保存在这个浏览器里，'}
-          {'服务器不保存任何与你相关的东西。'}
-        </p>
+        <div className={styles.intro}>
+          <ol>
+            <li>在下面连接插件。</li>
+            <li>回到 Gamma Reader，输入框下方会出现它的图标。</li>
+            <li>在对话里点亮图标，这个对话的助手就能用它。</li>
+          </ol>
+          <p>
+            连接信息加密后只存在你的浏览器里，服务器不保存你的任何信息。
+            <a
+              href="https://github.com/bencode/gamma-reader-plug#工作原理"
+              target="_blank"
+              rel="noopener"
+            >
+              查看原理
+            </a>
+          </p>
+        </div>
       </header>
       {listing.kind === 'loading' && <p className={styles.note}>正在读取插件…</p>}
       {listing.kind === 'failed' && (
@@ -55,7 +66,7 @@ export const App = () => {
         </p>
       )}
       {listing.kind === 'loaded' && (
-        <ul className={styles.list}>
+        <ul className={styles.list} aria-label="插件">
           {listing.plugins.map(card => (
             <PluginCard key={card.name} card={card} onChange={reload} />
           ))}

@@ -37,7 +37,8 @@ describe('plug home page', () => {
     })
     render(<App />)
 
-    const [connected, expired, paid, busy] = await screen.findAllByRole('listitem')
+    const list = await screen.findByRole('list', { name: '插件' })
+    const [connected, expired, paid, busy] = within(list).getAllByRole('listitem')
     expect(connected).toHaveTextContent('已连接')
     expect(connected).toHaveTextContent('「API Key」页面删除它')
     expect(within(connected as HTMLElement).getByRole('button', { name: '断开' })).toBeVisible()

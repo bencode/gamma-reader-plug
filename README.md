@@ -7,7 +7,9 @@ when you ask. You connect it with an API Key of your own.
 
 ## 工作原理
 
-插件服务（reader-plug.upivot.io）不保存任何与你相关的东西：没有账号，没有数据库，不写文件。你填的 Client ID 和 API Key 加密后，只存在你自己浏览器的 cookie 里。每次助手调用工具，浏览器自动带上这个 cookie；服务器在内存里解开、替你调用得到大脑，请求结束就丢掉。
+插件服务（reader-plug.upivot.io）不保存任何与你相关的东西：没有账号，没有数据库，不写文件。每个插件连接时用到的凭据都加密后存在你自己浏览器的 cookie 里；每次助手调用工具，浏览器自动带上这个 cookie，服务器在内存里解开、替你调用对应的服务，请求结束就丢掉。所有插件都走这一套，新加的插件也一样。
+
+下面以得到大脑为例，它的凭据是你自己的 Client ID 和 API Key。
 
 ```mermaid
 sequenceDiagram
