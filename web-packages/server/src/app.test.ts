@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Hono } from 'hono'
@@ -118,8 +118,12 @@ describe('plug app', () => {
   it("serves the page at each plugin's own path, and nothing at other paths", async () => {
     const webRoot = await mkdtemp(join(tmpdir(), 'plug-web-'))
     await writeFile(join(webRoot, 'index.html'), '<title>plug</title>')
-    const served = createApp({ plugOrigin, readerOrigin }, [notes], webRoot)
-    expect(await (await served.request('/notes')).text()).toBe('<title>plug</title>')
-    expect((await served.request('/nothing')).status).toBe(404)
+    try {
+      const served = createApp({ plugOrigin, readerOrigin }, [notes], webRoot)
+      expect(await (await served.request('/notes')).text()).toBe('<title>plug</title>')
+      expect((await served.request('/nothing')).status).toBe(404)
+    } finally {
+      await rm(webRoot, { recursive: true })
+    }
   })
 })
