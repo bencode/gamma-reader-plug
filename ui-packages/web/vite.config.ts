@@ -12,6 +12,8 @@ export default defineConfig({
   server: {
     port: Number(process.env.PLUG_WEB_PORT ?? 5304),
     strictPort: true,
+    // The server answers the reader's preflights; Vite's own answer would leave out credentials.
+    cors: false,
     // The page's API, and what the reader asks of the plug, both reach the server through here.
     proxy: Object.fromEntries(
       ['/api', '/manifest', '^/[a-z][a-z0-9-]*/tools/'].map(path => [
