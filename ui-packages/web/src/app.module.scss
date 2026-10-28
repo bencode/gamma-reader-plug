@@ -67,18 +67,8 @@
     font-size: 13px;
   }
   h2 {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px;
     margin: 0 0 8px;
     font-size: 17px;
-    span {
-      font-size: 13px;
-      font-weight: 400;
-      color: var(--muted);
-    }
   }
   table {
     width: 100%;
@@ -125,6 +115,25 @@
     padding-top: 16px;
     font-weight: 600;
     background: var(--panel);
+  }
+}
+.tools {
+  margin-top: 8px;
+  font-size: 13px;
+  summary {
+    cursor: pointer;
+    color: var(--muted);
+  }
+  dl {
+    margin: 8px 0 0;
+  }
+  dt {
+    margin-top: 8px;
+  }
+  dd {
+    margin: 2px 0 0;
+    color: var(--muted);
+    line-height: 1.5;
   }
 }
 .list {

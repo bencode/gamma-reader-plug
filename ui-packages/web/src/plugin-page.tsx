@@ -53,14 +53,10 @@ type ApiTableProps = { service: string; list: readonly ServiceApi[]; tools: Card
 const ApiTable = ({ service, list, tools }: ApiTableProps) => {
   const offered = new Set(tools.map(tool => tool.name))
   const callers = (api: ServiceApi) => api.tools?.filter(tool => offered.has(tool)) ?? []
-  const used = list.filter(api => callers(api).length > 0).length
   const groups = [...new Set(list.map(api => api.group))]
   return (
     <section className={styles.apis}>
-      <h2>
-        {service} API
-        <span>{`已接入 ${used} / 共 ${list.length}`}</span>
-      </h2>
+      <h2>{service}相关 API</h2>
       <table>
         <thead>
           <tr>

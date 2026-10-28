@@ -99,11 +99,11 @@ describe('plug home page', () => {
     expect(await screen.findByText('未连接')).toBeVisible()
   })
 
-  it("lists every API of the plugin's service and marks the ones its tools use", async () => {
+  it("lists the APIs of the plugin's service and marks the ones its tools use", async () => {
     serve({ '/api/plugins': [{ plugins: [card({ kind: 'connected' })] }] })
     show('/getnote')
 
-    expect(await screen.findByText('已接入 2 / 共 30')).toBeVisible()
+    expect(await screen.findByRole('heading', { name: '得到大脑相关 API' })).toBeVisible()
     expect(screen.getByText('POST recall').closest('tr')).toHaveTextContent('✓ getnote_search')
     expect(screen.getByText('POST note/update').closest('tr')).toHaveTextContent('—')
     expect(screen.getByText('交给助手的工具（1）')).toBeVisible()

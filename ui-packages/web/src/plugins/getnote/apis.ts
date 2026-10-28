@@ -1,7 +1,8 @@
 import type { ServiceApi } from '..'
 
-// Every API 得到大脑's open platform offers a personal API Key, from its documentation, with the
-// tools that call each one.
+// The APIs 得到大脑's open platform offers a personal API Key that bear on reading and notes, from
+// its documentation, with the tools that call each one. Sharing, image uploads, the progress of
+// link or image notes, and subscriptions to bloggers and live streams are left out.
 export const getnoteApis: readonly ServiceApi[] = [
   {
     group: '笔记',
@@ -40,20 +41,6 @@ export const getnoteApis: readonly ServiceApi[] = [
     path: 'note/delete',
     description: '删除笔记（移入回收站）',
     access: '删除',
-  },
-  {
-    group: '笔记',
-    method: 'POST',
-    path: 'note/task/progress',
-    description: '查询链接、图片笔记的异步任务进度',
-    access: '读',
-  },
-  {
-    group: '笔记',
-    method: 'POST',
-    path: 'note/sharing',
-    description: '创建笔记分享链接',
-    access: '新建',
   },
   {
     group: '知识库',
@@ -163,61 +150,5 @@ export const getnoteApis: readonly ServiceApi[] = [
     path: 'note/tags/delete',
     description: '删除笔记的标签',
     access: '删除',
-  },
-  {
-    group: '媒体',
-    method: 'GET',
-    path: 'image/upload_token',
-    description: '获取图片上传凭证',
-    access: '读',
-  },
-  {
-    group: '博主订阅',
-    method: 'POST',
-    path: 'knowledge/blogger/follow',
-    description: '订阅抖音博主，收录到知识库',
-    access: '新建',
-  },
-  {
-    group: '博主订阅',
-    method: 'GET',
-    path: 'knowledge/bloggers',
-    description: '博主列表',
-    access: '读',
-  },
-  {
-    group: '博主订阅',
-    method: 'GET',
-    path: 'knowledge/blogger/contents',
-    description: '博主内容列表',
-    access: '读',
-  },
-  {
-    group: '博主订阅',
-    method: 'GET',
-    path: 'knowledge/blogger/content/detail',
-    description: '博主内容详情',
-    access: '读',
-  },
-  {
-    group: '直播订阅',
-    method: 'GET',
-    path: 'knowledge/lives',
-    description: '已完成的直播列表',
-    access: '读',
-  },
-  {
-    group: '直播订阅',
-    method: 'GET',
-    path: 'knowledge/live/detail',
-    description: '直播详情',
-    access: '读',
-  },
-  {
-    group: '直播订阅',
-    method: 'POST',
-    path: 'knowledge/live/follow',
-    description: '关注得到 App 的直播',
-    access: '新建',
   },
 ]

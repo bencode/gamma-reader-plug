@@ -24,8 +24,8 @@ A plugin is a folder in each package, registered in that package's `plugins/inde
 
 - `web-packages/server/src/plugins/<name>/` defines the `Plugin`: its status, connect routes
   under `/api/<name>`, and tools named `<name>_…`.
-- `ui-packages/web/src/plugins/<name>/` holds its connect component and, in `apis.ts`, every API
-  its service offers with the tools that call each one, shown on the plugin's page at `/<name>`.
+- `ui-packages/web/src/plugins/<name>/` holds its connect component and, in `apis.ts`, the APIs
+  of its service that bear on the plugin, with the tools that call each one, shown on the plugin's page at `/<name>`.
 
 There is no user database. A plugin keeps its credential in a cookie sealed with `PLUG_SECRET`,
 so a connection belongs to one browser. Tool descriptions are in English, for the model; the page
