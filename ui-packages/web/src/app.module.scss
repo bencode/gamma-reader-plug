@@ -122,21 +122,6 @@
     text-decoration: none;
   }
 }
-.connect {
-  display: grid;
-  justify-items: end;
-  gap: 6px;
-  max-width: 240px;
-  text-align: right;
-  font-size: 14px;
-  p {
-    margin: 0;
-  }
-  code {
-    font-size: 15px;
-    font-weight: 600;
-  }
-}
 .actions:has(.keyForm) {
   flex-basis: 100%;
 }

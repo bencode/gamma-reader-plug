@@ -4,7 +4,7 @@ export type PluginStatus =
   | { kind: 'disconnected' }
   | { kind: 'connected' }
   // The API Key was deleted, or stopped working.
-  | { kind: 'expired' }
+  | { kind: 'invalid' }
   | { kind: 'needs_membership'; membershipUrl: string }
   // The service could not confirm the connection just now, such as when it fails or limits calls.
   | { kind: 'unknown'; message: string }

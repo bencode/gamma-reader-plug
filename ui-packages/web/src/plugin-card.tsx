@@ -21,7 +21,7 @@ export const PluginCard = ({ card, onChange }: PluginCardProps) => {
     }
   }
   const { status } = card
-  const disconnected = status.kind === 'disconnected' || status.kind === 'expired'
+  const disconnected = status.kind === 'disconnected' || status.kind === 'invalid'
 
   return (
     <li className={styles.card}>
@@ -40,7 +40,7 @@ export const PluginCard = ({ card, onChange }: PluginCardProps) => {
       <div className={styles.actions}>
         {disconnected && connector && (
           <connector.Connect
-            label={status.kind === 'expired' ? '重新连接' : '连接'}
+            label={status.kind === 'invalid' ? '重新连接' : '连接'}
             onConnected={onChange}
           />
         )}
@@ -56,7 +56,7 @@ export const PluginCard = ({ card, onChange }: PluginCardProps) => {
 
 const StatusLine = ({ status }: { status: PluginStatus }) => {
   if (status.kind === 'disconnected') return '未连接'
-  if (status.kind === 'expired') return 'API Key 已失效'
+  if (status.kind === 'invalid') return 'API Key 已失效'
   if (status.kind === 'connected') return '已连接'
   if (status.kind === 'needs_membership') {
     return (

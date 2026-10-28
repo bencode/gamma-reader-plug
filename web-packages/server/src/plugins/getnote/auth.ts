@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import { PluginError } from '../../plugin.js'
 import type { SealedCookie } from '../../sealed.js'
-import { type GetnoteApp, type GetnoteCredential, GetnoteError, getnote } from './client.js'
+import { type GetnoteCredential, GetnoteError, getnote } from './client.js'
 
 const connectInput = z.object({
   clientId: z.string().trim().min(1),
@@ -11,7 +11,7 @@ const connectInput = z.object({
 
 // Connecting with the user's own application and API Key: one light call proves they work before
 // they are kept, sealed, in this browser.
-export const authRoutes = (app: GetnoteApp, credential: SealedCookie<GetnoteCredential>) =>
+export const authRoutes = (plugOrigin: string, credential: SealedCookie<GetnoteCredential>) =>
   new Hono()
     .post('/connect', async c => {
       const body: unknown = await c.req.json().catch((cause: unknown) => {
@@ -21,7 +21,7 @@ export const authRoutes = (app: GetnoteApp, credential: SealedCookie<GetnoteCred
       const input = connectInput.safeParse(body)
       if (!input.success) throw new PluginError(400, '请填写 Client ID 和 API Key。')
       try {
-        await getnote(app, input.data, 'GET', 'note/list', { page_size: 1 })
+        await getnote(plugOrigin, input.data, 'GET', 'note/list', { page_size: 1 })
       } catch (cause) {
         throw refusal(cause)
       }

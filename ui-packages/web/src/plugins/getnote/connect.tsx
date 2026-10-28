@@ -28,11 +28,9 @@ export const GetnoteConnect = ({ label, onConnected }: ConnectProps) => {
 
   if (phase.kind === 'idle') {
     return (
-      <div className={styles.connect}>
-        <button type="button" className={styles.primary} onClick={() => setPhase({ kind: 'form' })}>
-          {label}
-        </button>
-      </div>
+      <button type="button" className={styles.primary} onClick={() => setPhase({ kind: 'form' })}>
+        {label}
+      </button>
     )
   }
   return (

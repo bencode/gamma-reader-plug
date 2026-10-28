@@ -3,7 +3,7 @@ import { getnote } from './client.js'
 
 afterEach(() => vi.restoreAllMocks())
 
-const app = { plugOrigin: 'https://plug.example.com' }
+const plugOrigin = 'https://plug.example.com'
 const credential = { clientId: 'cli_user', apiKey: 'gk_user' }
 const failure = (code: number, extra: object = {}, status = 200) =>
   Response.json(
@@ -21,7 +21,7 @@ describe('得到大脑 calls', () => {
       .mockResolvedValueOnce(failure(10004, {}, 401))
       .mockResolvedValueOnce(failure(10203, { reset_at: '2026-11-01T00:00:00Z' }))
       .mockResolvedValueOnce(failure(30000))
-    const list = () => getnote(app, credential, 'GET', 'note/list', { page_size: 1 })
+    const list = () => getnote(plugOrigin, credential, 'GET', 'note/list', { page_size: 1 })
 
     expect(await list()).toEqual({ notes: [] })
     const [url, init] = network.mock.calls[0] ?? []

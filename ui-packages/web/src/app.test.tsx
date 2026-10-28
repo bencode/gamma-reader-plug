@@ -28,7 +28,7 @@ describe('plug home page', () => {
         {
           plugins: [
             card({ kind: 'connected' }),
-            card({ kind: 'expired' }, 'old'),
+            card({ kind: 'invalid' }, 'old'),
             card({ kind: 'needs_membership', membershipUrl: 'https://example.com/join' }, 'paid'),
             card({ kind: 'unknown', message: 'Limited just now' }, 'busy'),
           ],
@@ -38,11 +38,11 @@ describe('plug home page', () => {
     render(<App />)
 
     const list = await screen.findByRole('list', { name: '插件' })
-    const [connected, expired, paid, busy] = within(list).getAllByRole('listitem')
+    const [connected, invalid, paid, busy] = within(list).getAllByRole('listitem')
     expect(connected).toHaveTextContent('已连接')
     expect(connected).toHaveTextContent('「API Key」页面删除它')
     expect(within(connected as HTMLElement).getByRole('button', { name: '断开' })).toBeVisible()
-    expect(expired).toHaveTextContent('API Key 已失效')
+    expect(invalid).toHaveTextContent('API Key 已失效')
     expect(within(paid as HTMLElement).getByRole('link', { name: '去开通' })).toHaveAttribute(
       'href',
       'https://example.com/join',
