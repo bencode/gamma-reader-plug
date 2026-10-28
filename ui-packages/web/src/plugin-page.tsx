@@ -6,8 +6,7 @@ import { ListingNote, type PageProps } from './home'
 import { PluginCard } from './plugin-card'
 import { connectors, type ServiceApi } from './plugins'
 
-// One plugin: its connection, which of its service's APIs it uses, and its tools as the model
-// reads them.
+// One plugin: its connection, and which of its service's APIs it uses.
 export const PluginPage = ({ listing, reload }: PageProps) => {
   const { name } = useParams()
   const card =
@@ -26,21 +25,6 @@ export const PluginPage = ({ listing, reload }: PageProps) => {
             <PluginCard card={card} onChange={reload} detailLink={false} />
           </ul>
           {apis && <ApiTable service={apis.service} list={apis.list} tools={card.tools} />}
-          {card.tools.length > 0 && (
-            <details className={styles.tools}>
-              <summary>交给助手的工具（{card.tools.length}）</summary>
-              <dl>
-                {card.tools.map(tool => (
-                  <div key={tool.name}>
-                    <dt>
-                      <code>{tool.name}</code>
-                    </dt>
-                    <dd>{tool.description}</dd>
-                  </div>
-                ))}
-              </dl>
-            </details>
-          )}
         </>
       )}
     </>
@@ -51,7 +35,7 @@ type ApiTableProps = { service: string; list: readonly ServiceApi[]; tools: Card
 
 // An API counts as used when a tool the server actually offers calls it.
 const ApiTable = ({ service, list, tools }: ApiTableProps) => {
-  const offered = new Set(tools.map(tool => tool.name))
+  const offered = new Set(tools)
   const callers = (api: ServiceApi) => api.tools?.filter(tool => offered.has(tool)) ?? []
   const groups = [...new Set(list.map(api => api.group))]
   return (

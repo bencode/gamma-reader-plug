@@ -105,7 +105,7 @@
       color: var(--accent);
     }
   }
-  // The tools are listed below the table, so a phone shows only the mark.
+  // A phone shows only the mark; the tool names would not fit.
   @media (max-width: 560px) {
     td:last-child code {
       display: none;
@@ -115,25 +115,6 @@
     padding-top: 16px;
     font-weight: 600;
     background: var(--panel);
-  }
-}
-.tools {
-  margin-top: 8px;
-  font-size: 13px;
-  summary {
-    cursor: pointer;
-    color: var(--muted);
-  }
-  dl {
-    margin: 8px 0 0;
-  }
-  dt {
-    margin-top: 8px;
-  }
-  dd {
-    margin: 2px 0 0;
-    color: var(--muted);
-    line-height: 1.5;
   }
 }
 .list {

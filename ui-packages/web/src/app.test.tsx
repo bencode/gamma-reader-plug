@@ -11,7 +11,7 @@ const card = (status: PluginStatus, name = 'getnote'): PluginCard => ({
   summary: 'Notes',
   icon: `/api/${name}/icon.svg`,
   status,
-  tools: [{ name: `${name}_search`, description: 'Search notes' }],
+  tools: [`${name}_search`],
 })
 
 // The plug's server, answering in order for each path: null is 204, a Response is itself.
@@ -106,7 +106,6 @@ describe('plug home page', () => {
     expect(await screen.findByRole('heading', { name: '得到大脑相关 API' })).toBeVisible()
     expect(screen.getByText('POST recall').closest('tr')).toHaveTextContent('✓ getnote_search')
     expect(screen.getByText('POST note/update').closest('tr')).toHaveTextContent('—')
-    expect(screen.getByText('交给助手的工具（1）')).toBeVisible()
     expect(screen.queryByRole('link', { name: '详情' })).toBeNull()
   })
 })

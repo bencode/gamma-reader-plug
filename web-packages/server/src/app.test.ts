@@ -54,7 +54,7 @@ describe('plug app', () => {
           summary: 'Your notes',
           icon: '/api/notes/icon.svg',
           status: { kind: 'connected' },
-          tools: [{ name: 'notes_search', description: 'Search notes' }],
+          tools: ['notes_search'],
         },
       ],
     })

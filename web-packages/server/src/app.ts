@@ -32,7 +32,7 @@ export const createApp = (
         summary: plugin.summary,
         icon: iconPath(plugin),
         status: await plugin.status(c),
-        tools: plugin.tools.map(({ name, description }) => ({ name, description })),
+        tools: plugin.tools.map(tool => tool.name),
       })),
     )
     return c.json({ plugins: cards })
