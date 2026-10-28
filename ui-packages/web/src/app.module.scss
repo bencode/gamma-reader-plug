@@ -1,5 +1,5 @@
 .page {
-  max-width: 720px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 48px 16px;
   h1 {
@@ -7,10 +7,43 @@
     font-size: 24px;
   }
 }
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  h1 {
+    margin: 0;
+  }
+}
+.source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+  &:hover {
+    color: var(--accent);
+  }
+}
 .intro,
 .note {
   color: var(--muted);
   line-height: 1.6;
+}
+.intro {
+  ol {
+    margin: 0;
+    padding-left: 1.4em;
+  }
+  p {
+    margin: 4px 0 0;
+  }
+  a {
+    margin-left: 4px;
+  }
 }
 .list {
   display: grid;
@@ -35,6 +68,10 @@
     line-height: 1.5;
   }
   @media (max-width: 520px) {
+    flex-wrap: wrap;
+  }
+  // A form needs the card's full width, so it takes a row of its own.
+  &:has(.keyForm) {
     flex-wrap: wrap;
   }
 }
@@ -85,20 +122,44 @@
     text-decoration: none;
   }
 }
-.connect {
+.actions:has(.keyForm) {
+  flex-basis: 100%;
+}
+.keyForm {
   display: grid;
-  justify-items: end;
-  gap: 6px;
-  max-width: 240px;
-  text-align: right;
+  gap: 10px;
+  width: 100%;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
   font-size: 14px;
   p {
     margin: 0;
+    line-height: 1.6;
   }
-  code {
-    font-size: 15px;
-    font-weight: 600;
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 4px;
   }
+  label {
+    display: grid;
+    gap: 4px;
+    color: var(--muted);
+  }
+  input {
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font: inherit;
+    font-family: ui-monospace, monospace;
+    color: inherit;
+  }
+}
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 .link {
   margin-left: 4px;

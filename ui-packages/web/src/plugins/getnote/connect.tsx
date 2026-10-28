@@ -1,91 +1,74 @@
-import type { ConnectStart, PollResult } from '@gamma-reader-plug/shared/plugins'
 import { ExternalLink } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { type FormEvent, useState } from 'react'
 import { post } from '../../api'
 import styles from '../../app.module.scss'
 import type { ConnectProps } from '../index'
 
-type Phase =
-  | { kind: 'idle' }
-  | { kind: 'starting' }
-  | { kind: 'waiting'; start: ConnectStart }
-  | { kind: 'expired' }
-  | { kind: 'failed'; message: string }
+type Phase = { kind: 'idle' } | { kind: 'form'; error?: string } | { kind: 'saving' }
 
-const message = (cause: unknown) => (cause instanceof Error ? cause.message : '连接失败')
-
-// Device-code authorization: the user confirms on 得到大脑's page while this one polls.
+// The user's own application and API Key, made on 得到大脑's open platform; the server checks them
+// once and keeps them sealed in this browser.
 export const GetnoteConnect = ({ label, onConnected }: ConnectProps) => {
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
-  const start = async () => {
-    setPhase({ kind: 'starting' })
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+    setPhase({ kind: 'saving' })
     try {
-      const response = await post('/api/getnote/connect')
-      setPhase({ kind: 'waiting', start: await response.json() })
+      await post('/api/getnote/connect', {
+        clientId: String(form.get('clientId') ?? ''),
+        apiKey: String(form.get('apiKey') ?? ''),
+      })
+      await onConnected()
     } catch (cause) {
-      console.error('Unable to start connecting', cause)
-      setPhase({ kind: 'failed', message: message(cause) })
+      console.error('Unable to connect', cause)
+      setPhase({ kind: 'form', error: cause instanceof Error ? cause.message : '连接失败' })
     }
   }
 
-  useEffect(() => {
-    if (phase.kind !== 'waiting') return
-    const controller = new AbortController()
-    const delay = phase.start.interval * 1000
-    let timer: ReturnType<typeof setTimeout>
-    const poll = async () => {
-      try {
-        const response = await post('/api/getnote/connect/poll', controller.signal)
-        const { status }: PollResult = await response.json()
-        if (status === 'pending') timer = setTimeout(poll, delay)
-        else if (status === 'connected') await onConnected()
-        else setPhase({ kind: 'expired' })
-      } catch (cause) {
-        if (controller.signal.aborted) return
-        console.error('Unable to check the authorization', cause)
-        setPhase({ kind: 'failed', message: message(cause) })
-      }
-    }
-    timer = setTimeout(poll, delay)
-    return () => {
-      controller.abort()
-      clearTimeout(timer)
-    }
-  }, [phase, onConnected])
-
-  if (phase.kind === 'waiting') {
+  if (phase.kind === 'idle') {
     return (
-      <div className={styles.connect}>
-        <a
-          className={styles.primary}
-          href={phase.start.verificationUri}
-          target="_blank"
-          rel="noopener"
-        >
-          去得到大脑授权
-          <ExternalLink size={14} aria-hidden="true" />
-        </a>
-        <p>
-          核对码 <code>{phase.start.userCode}</code>，授权后这里会自动更新。
-        </p>
-        <button type="button" onClick={() => setPhase({ kind: 'idle' })}>
-          取消
-        </button>
-      </div>
+      <button type="button" className={styles.primary} onClick={() => setPhase({ kind: 'form' })}>
+        {label}
+      </button>
     )
   }
   return (
-    <div className={styles.connect}>
-      {phase.kind === 'expired' && <p>授权码已过期。</p>}
-      {phase.kind === 'failed' && <p className={styles.error}>{phase.message}</p>}
-      <button
-        type="button"
-        className={styles.primary}
-        disabled={phase.kind === 'starting'}
-        onClick={() => void start()}
-      >
-        {phase.kind === 'idle' || phase.kind === 'starting' ? label : '重新连接'}
-      </button>
-    </div>
+    <form className={styles.keyForm} onSubmit={event => void submit(event)}>
+      <p>
+        在得到大脑开放平台的「应用管理」创建一个个人开发应用，再到「API Key」页为它创建 Key。
+        <a href="https://www.biji.com/openapi" target="_blank" rel="noopener">
+          去开放平台
+          <ExternalLink size={13} aria-hidden="true" />
+        </a>
+      </p>
+      <label>
+        Client ID
+        <input name="clientId" required autoComplete="off" spellCheck={false} placeholder="cli_…" />
+      </label>
+      <label>
+        API Key
+        <input
+          name="apiKey"
+          type="password"
+          required
+          autoComplete="off"
+          spellCheck={false}
+          placeholder="gk_live_…"
+        />
+      </label>
+      <p className={styles.hint}>
+        建议单独为 Reader 建一个 Key，以后不想用了，到得到大脑删掉它即可。
+      </p>
+      {phase.kind === 'form' && phase.error && <p className={styles.error}>{phase.error}</p>}
+      <div className={styles.formActions}>
+        <button type="button" onClick={() => setPhase({ kind: 'idle' })}>
+          取消
+        </button>
+        <button type="submit" className={styles.primary} disabled={phase.kind === 'saving'}>
+          {phase.kind === 'saving' ? '正在验证…' : '连接'}
+        </button>
+      </div>
+    </form>
   )
 }

@@ -10,6 +10,7 @@ export const connectors: Record<
 > = {
   getnote: {
     Connect: GetnoteConnect,
-    revokeHint: '断开只清除这个浏览器里的连接。要彻底撤销授权，请到得到大脑的「我的授权」页面。',
+    revokeHint:
+      '断开只清除这个浏览器里保存的 Key。要让它彻底失效，请到得到大脑的「API Key」页面删除它。',
   },
 }

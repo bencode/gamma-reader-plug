@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { z } from 'zod'
 import { defineTool } from '../../plugin.js'
-import { type GetnoteApp, type GetnoteCredential, getnote } from './client.js'
+import { type GetnoteCredential, getnote } from './client.js'
 import { type NoteDetail, noteMarkdown } from './note-markdown.js'
 
 type NoteSummary = {
@@ -34,7 +34,7 @@ const summary = (note: NoteSummary) => ({
 })
 
 // Reading and searching the user's notes, and adding new ones; nothing here edits or deletes.
-export const getnoteTools = (app: GetnoteApp) => [
+export const getnoteTools = (plugOrigin: string) => [
   defineTool({
     name: 'getnote_search',
     description:
@@ -54,7 +54,7 @@ export const getnoteTools = (app: GetnoteApp) => [
           created_at?: string
         }[]
         partial?: boolean
-      }>(app, credential, 'POST', input.topic_id ? 'recall/knowledge' : 'recall', input)
+      }>(plugOrigin, credential, 'POST', input.topic_id ? 'recall/knowledge' : 'recall', input)
       return {
         results: data.results.map(result => ({
           note_id: result.note_id,
@@ -84,7 +84,7 @@ export const getnoteTools = (app: GetnoteApp) => [
           stats?: { note_count?: number }
         }[]
         has_more: boolean
-      }>(app, credential, 'GET', 'knowledge/list', { ...input, page_size: pageSize })
+      }>(plugOrigin, credential, 'GET', 'knowledge/list', { ...input, page_size: pageSize })
       return {
         knowledge_bases: data.topics.map(topic => ({
           topic_id: topic.topic_id,
@@ -108,14 +108,14 @@ export const getnoteTools = (app: GetnoteApp) => [
     run: async (input, credential: GetnoteCredential) => {
       if (input.topic_id) {
         const page = input.page ?? 1
-        const data = await getnote<NotePage>(app, credential, 'GET', 'knowledge/notes', {
+        const data = await getnote<NotePage>(plugOrigin, credential, 'GET', 'knowledge/notes', {
           topic_id: input.topic_id,
           page,
           page_size: pageSize,
         })
         return { notes: data.notes.map(summary), next_page: data.has_more ? page + 1 : null }
       }
-      const data = await getnote<NotePage>(app, credential, 'GET', 'note/list', {
+      const data = await getnote<NotePage>(plugOrigin, credential, 'GET', 'note/list', {
         cursor: input.cursor,
         page_size: pageSize,
       })
@@ -129,9 +129,15 @@ export const getnoteTools = (app: GetnoteApp) => [
       "Read one 得到大脑 note in full as Markdown: a highlight with the user's comment, a saved page, or a recording's transcript.",
     input: z.object({ note_id: z.string().min(1) }),
     run: async (input, credential: GetnoteCredential) => {
-      const { note } = await getnote<{ note: NoteDetail }>(app, credential, 'GET', 'note/detail', {
-        id: input.note_id,
-      })
+      const { note } = await getnote<{ note: NoteDetail }>(
+        plugOrigin,
+        credential,
+        'GET',
+        'note/detail',
+        {
+          id: input.note_id,
+        },
+      )
       return {
         note_id: note.note_id,
         title: note.title,
@@ -157,7 +163,7 @@ export const getnoteTools = (app: GetnoteApp) => [
         .digest('hex')
         .slice(0, 32)
       const data = await getnote<{ note_id: string }>(
-        app,
+        plugOrigin,
         credential,
         'POST',
         'note/save',

@@ -2,11 +2,8 @@ import { PluginError } from '../../plugin.js'
 
 const apiBase = 'https://openapi.biji.com/open/api/v1'
 
-// This plug's application at 得到大脑, and where a user goes to reconnect.
-export type GetnoteApp = { clientId: string; appKey: string; plugOrigin: string }
-
-// What a user's authorization gives: a key of their own, valid until expiresAt (Unix seconds).
-export type GetnoteCredential = { apiKey: string; expiresAt: number }
+// A user's own application at 得到大脑 and an API Key they made for it.
+export type GetnoteCredential = { clientId: string; apiKey: string }
 
 type Envelope = {
   success: boolean
@@ -21,7 +18,7 @@ type Envelope = {
   request_id?: string
 }
 
-// A failed call, with the code that tells an expired authorization or a missing membership apart.
+// A failed call, with the code that tells a wrong or deleted key, or a missing membership, apart.
 export class GetnoteError extends PluginError {
   constructor(
     status: ConstructorParameters<typeof PluginError>[0],
@@ -33,9 +30,10 @@ export class GetnoteError extends PluginError {
   }
 }
 
-// A resource call as the user. A failure can come with HTTP 200, so success is what decides.
+// A resource call as the user; plugOrigin is where the user goes to connect again. A failure can
+// come with HTTP 200, so success is what decides.
 export const getnote = async <T>(
-  app: GetnoteApp,
+  plugOrigin: string,
   credential: GetnoteCredential,
   method: 'GET' | 'POST',
   path: string,
@@ -52,30 +50,16 @@ export const getnote = async <T>(
     method,
     headers: {
       Authorization: credential.apiKey,
-      'X-Client-ID': app.clientId,
+      'X-Client-ID': credential.clientId,
       ...(method === 'POST' && { 'Content-Type': 'application/json' }),
       ...headers,
     },
     ...(method === 'POST' && { body: JSON.stringify(input) }),
   })
-  return unwrap<T>(app, path, response)
+  return unwrap<T>(plugOrigin, path, response)
 }
 
-// An authorization call as this plug's application.
-export const getnoteOauth = async <T>(app: GetnoteApp, path: string, body: object): Promise<T> => {
-  const response = await fetch(`${apiBase}/oauth/${path}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${app.appKey}`,
-      'X-Client-ID': app.clientId,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ client_id: app.clientId, ...body }),
-  })
-  return unwrap<T>(app, `oauth/${path}`, response)
-}
-
-const unwrap = async <T>(app: GetnoteApp, path: string, response: Response): Promise<T> => {
+const unwrap = async <T>(plugOrigin: string, path: string, response: Response): Promise<T> => {
   // A proxy's error page is not JSON.
   const parsed: unknown = await response.json().catch((cause: unknown) => {
     if (!(cause instanceof SyntaxError)) throw cause
@@ -89,14 +73,14 @@ const unwrap = async <T>(app: GetnoteApp, path: string, response: Response): Pro
   console.warn(
     `getnote ${path} failed: HTTP ${response.status}, ${error?.reason ?? error?.code ?? 'no body'}, request ${body?.request_id ?? '-'}`,
   )
-  throw refusal(app, response.status, error, body?.request_id)
+  throw refusal(plugOrigin, response.status, error, body?.request_id)
 }
 
 const isEnvelope = (value: unknown): value is Envelope =>
   typeof value === 'object' && value !== null && 'success' in value
 
 const refusal = (
-  app: GetnoteApp,
+  plugOrigin: string,
   status: number,
   error: Envelope['error'] | undefined,
   requestId: string | undefined,
@@ -105,7 +89,7 @@ const refusal = (
   if (code === 10004 || status === 401) {
     return new GetnoteError(
       401,
-      `The 得到大脑 authorization has expired or was revoked. Reconnect it at ${app.plugOrigin}.`,
+      `The 得到大脑 API Key was deleted or is not valid. Enter a working one at ${plugOrigin}.`,
       code,
     )
   }

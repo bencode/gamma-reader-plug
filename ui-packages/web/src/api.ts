@@ -6,8 +6,13 @@ export const loadPlugins = async (signal?: AbortSignal) => {
   return body.plugins
 }
 
-export const post = async (path: string, signal?: AbortSignal) =>
-  checked(await fetch(path, { method: 'POST', signal }))
+export const post = async (path: string, body?: object) =>
+  checked(
+    await fetch(path, {
+      method: 'POST',
+      ...(body && { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+    }),
+  )
 
 // The server explains a refusal as { error: { message } }.
 const checked = async (response: Response) => {

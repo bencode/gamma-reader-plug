@@ -35,27 +35,33 @@ export const open = (key: Buffer, sealed: string): unknown => {
   }
 }
 
-// A sealed cookie holding one kind of value; read checks its shape.
+// A sealed cookie holding one kind of value; read checks its shape. Each read that finds a value
+// sets it again, so a cookie in use never reaches the browsers' limit.
 export const sealedCookie = <T>(
   name: string,
   key: Buffer,
   secure: boolean,
   read: (value: unknown) => T | null,
-) => ({
-  get: (c: Context): T | null => {
-    const raw = getCookie(c, name)
-    const value = raw === undefined ? null : open(key, raw)
-    return value === null ? null : read(value)
-  },
-  set: (c: Context, value: T, maxAge: number) =>
+) => {
+  const set = (c: Context, value: T) =>
     setCookie(c, name, seal(key, value), {
       httpOnly: true,
       secure,
       sameSite: 'Lax',
       path: '/',
-      maxAge: Math.min(Math.max(0, Math.floor(maxAge)), maxCookieAge),
-    }),
-  clear: (c: Context) => deleteCookie(c, name, { path: '/', secure }),
-})
+      maxAge: maxCookieAge,
+    })
+  return {
+    get: (c: Context): T | null => {
+      const raw = getCookie(c, name)
+      const opened = raw === undefined ? null : open(key, raw)
+      const value = opened === null ? null : read(opened)
+      if (value !== null) set(c, value)
+      return value
+    },
+    set,
+    clear: (c: Context) => deleteCookie(c, name, { path: '/', secure }),
+  }
+}
 
 export type SealedCookie<T> = ReturnType<typeof sealedCookie<T>>

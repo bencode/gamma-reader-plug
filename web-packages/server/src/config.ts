@@ -6,7 +6,6 @@ export type PlugConfig = {
   readerOrigin: string
   // Seals the credentials kept in cookies.
   secret: Buffer
-  getnote: { clientId: string; appKey: string }
 }
 
 export const readConfig = (env: NodeJS.ProcessEnv): PlugConfig => {
@@ -22,10 +21,6 @@ export const readConfig = (env: NodeJS.ProcessEnv): PlugConfig => {
     plugOrigin: origin(env, 'PLUG_ORIGIN'),
     readerOrigin: origin(env, 'READER_ORIGIN'),
     secret,
-    getnote: {
-      clientId: required(env, 'GETNOTE_CLIENT_ID'),
-      appKey: required(env, 'GETNOTE_APP_KEY'),
-    },
   }
 }
 

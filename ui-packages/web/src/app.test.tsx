@@ -12,11 +12,12 @@ const card = (status: PluginStatus, name = 'getnote'): PluginCard => ({
   status,
 })
 
-// The plug's server, answering in order for each path.
+// The plug's server, answering in order for each path: null is 204, a Response is itself.
 const serve = (answers: Record<string, unknown[]>) =>
   vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
     const answer = answers[String(input)]?.shift()
     if (answer === undefined) throw new Error(`Unexpected request: ${String(input)}`)
+    if (answer instanceof Response) return answer
     return answer === null ? new Response(null, { status: 204 }) : Response.json(answer)
   })
 
@@ -26,8 +27,8 @@ describe('plug home page', () => {
       '/api/plugins': [
         {
           plugins: [
-            card({ kind: 'connected', expiresAt: '2027-03-01T12:00:00.000Z' }),
-            card({ kind: 'expired' }, 'old'),
+            card({ kind: 'connected' }),
+            card({ kind: 'invalid' }, 'old'),
             card({ kind: 'needs_membership', membershipUrl: 'https://example.com/join' }, 'paid'),
             card({ kind: 'unknown', message: 'Limited just now' }, 'busy'),
           ],
@@ -36,11 +37,12 @@ describe('plug home page', () => {
     })
     render(<App />)
 
-    const [connected, expired, paid, busy] = await screen.findAllByRole('listitem')
-    expect(connected).toHaveTextContent('已连接 · 有效期至 2027/3/1')
-    expect(connected).toHaveTextContent('「我的授权」')
+    const list = await screen.findByRole('list', { name: '插件' })
+    const [connected, invalid, paid, busy] = within(list).getAllByRole('listitem')
+    expect(connected).toHaveTextContent('已连接')
+    expect(connected).toHaveTextContent('「API Key」页面删除它')
     expect(within(connected as HTMLElement).getByRole('button', { name: '断开' })).toBeVisible()
-    expect(expired).toHaveTextContent('授权已失效')
+    expect(invalid).toHaveTextContent('API Key 已失效')
     expect(within(paid as HTMLElement).getByRole('link', { name: '去开通' })).toHaveAttribute(
       'href',
       'https://example.com/join',
@@ -48,37 +50,37 @@ describe('plug home page', () => {
     expect(busy).toHaveTextContent('暂时无法确认：Limited just now')
   })
 
-  it('connects once the user confirms on 得到大脑, and disconnects', async () => {
+  it("connects with the user's own key, says why one is turned down, and disconnects", async () => {
     const user = userEvent.setup()
     const network = serve({
       '/api/plugins': [
         { plugins: [card({ kind: 'disconnected' })] },
-        { plugins: [card({ kind: 'connected', expiresAt: '2027-03-01T12:00:00.000Z' })] },
+        { plugins: [card({ kind: 'connected' })] },
         { plugins: [card({ kind: 'disconnected' })] },
       ],
       '/api/getnote/connect': [
-        {
-          userCode: 'ABCD-EFGH',
-          verificationUri: 'https://biji.com/authorize?code=1',
-          interval: 0,
-          expiresIn: 600,
-        },
+        Response.json({ error: { message: 'Client ID 或 API Key 不对' } }, { status: 400 }),
+        null,
       ],
-      '/api/getnote/connect/poll': [{ status: 'pending' }, { status: 'connected' }],
       '/api/getnote/disconnect': [null],
     })
     render(<App />)
 
     await user.click(await screen.findByRole('button', { name: '连接' }))
-    expect(await screen.findByRole('link', { name: '去得到大脑授权' })).toHaveAttribute(
-      'href',
-      'https://biji.com/authorize?code=1',
-    )
-    expect(screen.getByText('ABCD-EFGH')).toBeVisible()
-    expect(await screen.findByText(/已连接/)).toBeVisible()
-    expect(
-      network.mock.calls.filter(([path]) => path === '/api/getnote/connect/poll'),
-    ).toHaveLength(2)
+    await user.type(screen.getByLabelText('Client ID'), 'cli_user')
+    await user.type(screen.getByLabelText('API Key'), 'gk_wrong')
+    await user.click(screen.getByRole('button', { name: '连接' }))
+    expect(await screen.findByText('Client ID 或 API Key 不对')).toBeVisible()
+
+    await user.clear(screen.getByLabelText('API Key'))
+    await user.type(screen.getByLabelText('API Key'), 'gk_user')
+    await user.click(screen.getByRole('button', { name: '连接' }))
+    expect(await screen.findByText('已连接')).toBeVisible()
+    const sent = network.mock.calls.filter(([path]) => path === '/api/getnote/connect')
+    expect(JSON.parse(String(sent[1]?.[1]?.body))).toEqual({
+      clientId: 'cli_user',
+      apiKey: 'gk_user',
+    })
 
     await user.click(screen.getByRole('button', { name: '断开' }))
     expect(await screen.findByText('未连接')).toBeVisible()

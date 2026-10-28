@@ -12,8 +12,6 @@ services:
       PLUG_ORIGIN: ${PLUG_ORIGIN:?PLUG_ORIGIN is required}
       READER_ORIGIN: ${READER_ORIGIN:?READER_ORIGIN is required}
       PLUG_SECRET: ${PLUG_SECRET:?PLUG_SECRET is required}
-      GETNOTE_CLIENT_ID: ${GETNOTE_CLIENT_ID:?GETNOTE_CLIENT_ID is required}
-      GETNOTE_APP_KEY: ${GETNOTE_APP_KEY:?GETNOTE_APP_KEY is required}
     ports:
       - "172.17.0.1:3304:3304"
     healthcheck:
