@@ -1,0 +1,30 @@
+name: gamma-reader-plug
+
+services:
+  plug:
+    image: gamma-reader-plug:${GAMMA_READER_PLUG_TAG:-latest}
+    build:
+      context: .
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3304
+      PLUG_ORIGIN: ${PLUG_ORIGIN:?PLUG_ORIGIN is required}
+      READER_ORIGIN: ${READER_ORIGIN:?READER_ORIGIN is required}
+      PLUG_SECRET: ${PLUG_SECRET:?PLUG_SECRET is required}
+      GETNOTE_CLIENT_ID: ${GETNOTE_CLIENT_ID:?GETNOTE_CLIENT_ID is required}
+      GETNOTE_APP_KEY: ${GETNOTE_APP_KEY:?GETNOTE_APP_KEY is required}
+    ports:
+      - "172.17.0.1:3304:3304"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          fetch('http://127.0.0.1:3304/api/health').then(response => process.exit(response.ok ? 0 : 1)).catch(error => { console.error(error); process.exit(1) })
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
