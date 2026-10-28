@@ -15,9 +15,7 @@ const notes: Plugin = {
   icon: '<svg/>',
   connected: c => c.req.header('Cookie') === 'notes=on',
   status: async c =>
-    c.req.header('Cookie') === 'notes=on'
-      ? { kind: 'connected', expiresAt: '2027-01-01T00:00:00.000Z' }
-      : { kind: 'disconnected' },
+    c.req.header('Cookie') === 'notes=on' ? { kind: 'connected' } : { kind: 'disconnected' },
   routes: new Hono().post('/disconnect', c => c.body(null, 204)),
   ...toolset(
     [
@@ -52,7 +50,7 @@ describe('plug app', () => {
           title: 'Notes',
           summary: 'Your notes',
           icon: '/api/notes/icon.svg',
-          status: { kind: 'connected', expiresAt: '2027-01-01T00:00:00.000Z' },
+          status: { kind: 'connected' },
         },
       ],
     })

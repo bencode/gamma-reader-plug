@@ -2,11 +2,11 @@ import { PluginError } from '../../plugin.js'
 
 const apiBase = 'https://openapi.biji.com/open/api/v1'
 
-// This plug's application at 得到大脑, and where a user goes to reconnect.
-export type GetnoteApp = { clientId: string; appKey: string; plugOrigin: string }
+// Where a user goes to connect again.
+export type GetnoteApp = { plugOrigin: string }
 
-// What a user's authorization gives: a key of their own, valid until expiresAt (Unix seconds).
-export type GetnoteCredential = { apiKey: string; expiresAt: number }
+// A user's own application at 得到大脑 and an API Key they made for it.
+export type GetnoteCredential = { clientId: string; apiKey: string }
 
 type Envelope = {
   success: boolean
@@ -52,27 +52,13 @@ export const getnote = async <T>(
     method,
     headers: {
       Authorization: credential.apiKey,
-      'X-Client-ID': app.clientId,
+      'X-Client-ID': credential.clientId,
       ...(method === 'POST' && { 'Content-Type': 'application/json' }),
       ...headers,
     },
     ...(method === 'POST' && { body: JSON.stringify(input) }),
   })
   return unwrap<T>(app, path, response)
-}
-
-// An authorization call as this plug's application.
-export const getnoteOauth = async <T>(app: GetnoteApp, path: string, body: object): Promise<T> => {
-  const response = await fetch(`${apiBase}/oauth/${path}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${app.appKey}`,
-      'X-Client-ID': app.clientId,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ client_id: app.clientId, ...body }),
-  })
-  return unwrap<T>(app, `oauth/${path}`, response)
 }
 
 const unwrap = async <T>(app: GetnoteApp, path: string, response: Response): Promise<T> => {
@@ -105,7 +91,7 @@ const refusal = (
   if (code === 10004 || status === 401) {
     return new GetnoteError(
       401,
-      `The 得到大脑 authorization has expired or was revoked. Reconnect it at ${app.plugOrigin}.`,
+      `The 得到大脑 API Key was deleted or is not valid. Enter a working one at ${app.plugOrigin}.`,
       code,
     )
   }

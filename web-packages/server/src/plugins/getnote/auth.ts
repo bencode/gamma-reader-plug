@@ -1,77 +1,45 @@
-import type { ConnectStart, PollResult } from '@gamma-reader-plug/shared/plugins'
 import { Hono } from 'hono'
+import { z } from 'zod'
 import { PluginError } from '../../plugin.js'
 import type { SealedCookie } from '../../sealed.js'
-import { type GetnoteApp, type GetnoteCredential, getnoteOauth } from './client.js'
+import { type GetnoteApp, type GetnoteCredential, GetnoteError, getnote } from './client.js'
 
-// A device code waiting for the user to confirm on 得到大脑's own page; expiresAt in milliseconds.
-export type Pending = { code: string; expiresAt: number }
+const connectInput = z.object({
+  clientId: z.string().trim().min(1),
+  apiKey: z.string().trim().min(1),
+})
 
-type DeviceCode = {
-  code: string
-  user_code: string
-  verification_uri: string
-  expires_in: number
-  interval: number
-}
-
-// Until the user confirms, the token call answers with msg; once they do, with a key of their own.
-type Token =
-  | { msg: string }
-  | { client_id: string; api_key: string; key_id: string; expires_at: number }
-
-const waiting = new Set(['authorization_pending', 'slow_down'])
-const ended = new Set(['expired_token', 'access_denied'])
-
-// Connecting by device code: the user confirms on 得到大脑's page while the plug's page polls.
-export const authRoutes = (
-  app: GetnoteApp,
-  cookies: { credential: SealedCookie<GetnoteCredential>; pending: SealedCookie<Pending> },
-) =>
+// Connecting with the user's own application and API Key: one light call proves they work before
+// they are kept, sealed, in this browser.
+export const authRoutes = (app: GetnoteApp, credential: SealedCookie<GetnoteCredential>) =>
   new Hono()
     .post('/connect', async c => {
-      const code = await getnoteOauth<DeviceCode>(app, 'device/code', {})
-      cookies.pending.set(
-        c,
-        { code: code.code, expiresAt: Date.now() + code.expires_in * 1000 },
-        code.expires_in,
-      )
-      const start: ConnectStart = {
-        userCode: code.user_code,
-        verificationUri: code.verification_uri,
-        interval: code.interval,
-        expiresIn: code.expires_in,
-      }
-      return c.json(start)
-    })
-    .post('/connect/poll', async c => {
-      const result = (status: PollResult['status']) => c.json<PollResult>({ status })
-      const pending = cookies.pending.get(c)
-      if (!pending || pending.expiresAt <= Date.now()) {
-        cookies.pending.clear(c)
-        return result('expired')
-      }
-      const token = await getnoteOauth<Token>(app, 'token', {
-        grant_type: 'device_code',
-        code: pending.code,
+      const body: unknown = await c.req.json().catch((cause: unknown) => {
+        if (cause instanceof SyntaxError) return null
+        throw cause
       })
-      if ('api_key' in token) {
-        cookies.credential.set(
-          c,
-          { apiKey: token.api_key, expiresAt: token.expires_at },
-          token.expires_at - Date.now() / 1000,
-        )
-        cookies.pending.clear(c)
-        return result('connected')
+      const input = connectInput.safeParse(body)
+      if (!input.success) throw new PluginError(400, '请填写 Client ID 和 API Key。')
+      try {
+        await getnote(app, input.data, 'GET', 'note/list', { page_size: 1 })
+      } catch (cause) {
+        throw refusal(cause)
       }
-      if (waiting.has(token.msg)) return result('pending')
-      if (ended.has(token.msg)) {
-        cookies.pending.clear(c)
-        return result('expired')
-      }
-      throw new PluginError(502, `得到大脑 answered the authorization unexpectedly: ${token.msg}.`)
-    })
-    .post('/disconnect', c => {
-      cookies.credential.clear(c)
+      credential.set(c, input.data)
       return c.body(null, 204)
     })
+    .post('/disconnect', c => {
+      credential.clear(c)
+      return c.body(null, 204)
+    })
+
+// What the page shows when 得到大脑 turns the key down.
+const refusal = (cause: unknown) => {
+  if (!(cause instanceof GetnoteError)) return cause
+  if (cause.status === 401) {
+    return new PluginError(400, 'Client ID 或 API Key 不对，或者这个 Key 已被删除。')
+  }
+  if (cause.code === 10201) return new PluginError(403, '这个账号还没有开通得到大脑会员。')
+  if (cause.status === 429) return new PluginError(429, '得到大脑暂时限制了调用，请稍后再试。')
+  return cause
+}

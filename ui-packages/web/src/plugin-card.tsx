@@ -29,6 +29,7 @@ export const PluginCard = ({ card, onChange }: PluginCardProps) => {
       <div className={styles.body}>
         <h2>{card.title}</h2>
         <p>{card.summary}</p>
+        {connector?.about && <p className={styles.about}>{connector.about}</p>}
         <p className={styles.status} data-kind={status.kind}>
           <StatusLine status={status} />
         </p>
@@ -56,10 +57,8 @@ export const PluginCard = ({ card, onChange }: PluginCardProps) => {
 
 const StatusLine = ({ status }: { status: PluginStatus }) => {
   if (status.kind === 'disconnected') return '未连接'
-  if (status.kind === 'expired') return '授权已失效'
-  if (status.kind === 'connected') {
-    return `已连接 · 有效期至 ${new Date(status.expiresAt).toLocaleDateString('zh-CN')}`
-  }
+  if (status.kind === 'expired') return 'API Key 已失效'
+  if (status.kind === 'connected') return '已连接'
   if (status.kind === 'needs_membership') {
     return (
       <>

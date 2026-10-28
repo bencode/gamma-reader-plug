@@ -37,6 +37,10 @@
   @media (max-width: 520px) {
     flex-wrap: wrap;
   }
+  // A form needs the card's full width, so it takes a row of its own.
+  &:has(.keyForm) {
+    flex-wrap: wrap;
+  }
 }
 .icon {
   width: 36px;
@@ -99,6 +103,49 @@
     font-size: 15px;
     font-weight: 600;
   }
+}
+.actions:has(.keyForm) {
+  flex-basis: 100%;
+}
+.keyForm {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  p {
+    margin: 0;
+    line-height: 1.6;
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 4px;
+  }
+  label {
+    display: grid;
+    gap: 4px;
+    color: var(--muted);
+  }
+  input {
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font: inherit;
+    font-family: ui-monospace, monospace;
+    color: inherit;
+  }
+}
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.about {
+  font-size: 13px;
+  color: var(--muted);
 }
 .link {
   margin-left: 4px;

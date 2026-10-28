@@ -30,7 +30,15 @@ export const App = () => {
         <p className={styles.intro}>
           {/* Chinese takes no space where a line breaks, so each line is its own string. */}
           {'连接一个插件后，回到 Gamma Reader，对话输入框下方会出现它的图标。'}
-          {'在哪个对话里打开它，那个对话的阅读助手就能用它。连接只保存在这个浏览器里。'}
+          {'在哪个对话里打开它，那个对话的阅读助手就能用它。连接只保存在这个浏览器里，'}
+          {'服务器不保存任何与你相关的东西。'}
+          <a
+            href="https://github.com/bencode/gamma-reader-plug#工作原理"
+            target="_blank"
+            rel="noopener"
+          >
+            工作原理
+          </a>
         </p>
       </header>
       {listing.kind === 'loading' && <p className={styles.note}>正在读取插件…</p>}

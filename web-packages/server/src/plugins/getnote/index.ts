@@ -1,7 +1,7 @@
 import type { PluginStatus } from '@gamma-reader-plug/shared/plugins'
 import { type Plugin, toolset } from '../../plugin.js'
 import { sealedCookie } from '../../sealed.js'
-import { authRoutes, type Pending } from './auth.js'
+import { authRoutes } from './auth.js'
 import { type GetnoteApp, type GetnoteCredential, GetnoteError, getnote } from './client.js'
 import { getnoteTools } from './tools.js'
 
@@ -14,16 +14,8 @@ export const createGetnote = ({ secret, ...app }: GetnoteApp & { secret: Buffer 
   // Over plain http, as in local development, a Secure cookie would never come back.
   const secure = app.plugOrigin.startsWith('https:')
   const credential = sealedCookie<GetnoteCredential>('getnote', secret, secure, value =>
-    isRecord(value) &&
-    typeof value.apiKey === 'string' &&
-    typeof value.expiresAt === 'number' &&
-    value.expiresAt * 1000 > Date.now()
-      ? { apiKey: value.apiKey, expiresAt: value.expiresAt }
-      : null,
-  )
-  const pending = sealedCookie<Pending>('getnote_pending', secret, secure, value =>
-    isRecord(value) && typeof value.code === 'string' && typeof value.expiresAt === 'number'
-      ? { code: value.code, expiresAt: value.expiresAt }
+    isRecord(value) && typeof value.clientId === 'string' && typeof value.apiKey === 'string'
+      ? { clientId: value.clientId, apiKey: value.apiKey }
       : null,
   )
   return {
@@ -32,13 +24,13 @@ export const createGetnote = ({ secret, ...app }: GetnoteApp & { secret: Buffer 
     summary: '让阅读助手搜索、阅读你的得到大脑笔记，并在你要求时新建笔记。',
     icon,
     connected: c => credential.get(c) !== null,
-    // A light call confirms the key still works, so the page can tell a revoked one apart.
+    // A light call confirms the key still works, so the page can tell a deleted one apart.
     status: async (c): Promise<PluginStatus> => {
       const held = credential.get(c)
       if (!held) return { kind: 'disconnected' }
       try {
         await getnote(app, held, 'GET', 'note/list', { page_size: 1 })
-        return { kind: 'connected', expiresAt: new Date(held.expiresAt * 1000).toISOString() }
+        return { kind: 'connected' }
       } catch (cause) {
         if (!(cause instanceof GetnoteError)) throw cause
         if (cause.status === 401) return { kind: 'expired' }
@@ -51,7 +43,7 @@ export const createGetnote = ({ secret, ...app }: GetnoteApp & { secret: Buffer 
         return { kind: 'unknown', message: cause.message }
       }
     },
-    routes: authRoutes(app, { credential, pending }),
+    routes: authRoutes(app, credential),
     ...toolset(
       getnoteTools(app),
       c => credential.get(c),
