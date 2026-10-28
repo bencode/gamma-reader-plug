@@ -10,6 +10,7 @@ const card = (status: PluginStatus, name = 'getnote'): PluginCard => ({
   summary: 'Notes',
   icon: `/api/${name}/icon.svg`,
   status,
+  tools: [{ name: `${name}_search`, description: 'Search notes' }],
 })
 
 // The plug's server, answering in order for each path: null is 204, a Response is itself.
@@ -40,6 +41,7 @@ describe('plug home page', () => {
     const list = await screen.findByRole('list', { name: '插件' })
     const [connected, invalid, paid, busy] = within(list).getAllByRole('listitem')
     expect(connected).toHaveTextContent('已连接')
+    expect(connected).toHaveTextContent('助手能用的工具（1）getnote_search')
     expect(connected).toHaveTextContent('「API Key」页面删除它')
     expect(within(connected as HTMLElement).getByRole('button', { name: '断开' })).toBeVisible()
     expect(invalid).toHaveTextContent('API Key 已失效')

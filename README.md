@@ -5,53 +5,53 @@ Plugins for [Gamma Reader](https://github.com/bencode/gamma-reader): connect a s
 The first plugin is 得到大脑: the assistant can search and read your notes, and save a new note
 when you ask. You connect it with an API Key of your own.
 
-## 工作原理
+## How it works
 
-插件服务（reader-plug.upivot.io）不保存任何与你相关的东西：没有账号，没有数据库，不写文件。每个插件连接时用到的凭据都加密后存在你自己浏览器的 cookie 里；每次助手调用工具，浏览器自动带上这个 cookie，服务器在内存里解开、替你调用对应的服务，请求结束就丢掉。所有插件都走这一套，新加的插件也一样。
+The plug server (reader-plug.upivot.io) keeps nothing about you: no accounts, no database, no files. Whatever credential a plugin needs is encrypted and kept in a cookie in your own browser. Each time the assistant calls a tool, the browser sends that cookie along; the server opens it in memory, calls the service for you, and drops it when the request ends. Every plugin works this way, including ones added later.
 
-下面以得到大脑为例，它的凭据是你自己的 Client ID 和 API Key。
+The diagram follows 得到大脑, whose credential is your own Client ID and API Key.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor You as 你
-    participant Plug as 插件页面<br/>reader-plug.upivot.io
+    actor You
+    participant Plug as Plug page<br/>reader-plug.upivot.io
     participant Reader as Gamma Reader<br/>reader.upivot.io
-    participant Server as 插件服务器<br/>无数据库，不保存
+    participant Server as Plug server<br/>no database, keeps nothing
     participant Getnote as 得到大脑 OpenAPI
 
     rect rgba(127, 127, 127, 0.08)
-    Note over You,Getnote: 连接：只做一次
-    You->>Plug: 填写自己的 Client ID 和 API Key
+    Note over You,Getnote: Connecting, once
+    You->>Plug: Enter your own Client ID and API Key
     Plug->>Server: POST /api/getnote/connect
-    Server->>Getnote: 用这对 Key 试读一条笔记
-    Getnote-->>Server: 有效
-    Server-->>Plug: Set-Cookie：加密后的 Key<br/>AES-256-GCM，HttpOnly，脚本读不到
-    Note over Plug: Key 只在你的浏览器里
+    Server->>Getnote: Try reading one note with them
+    Getnote-->>Server: Valid
+    Server-->>Plug: Set-Cookie: the encrypted key<br/>AES-256-GCM, HttpOnly, out of scripts' reach
+    Note over Plug: The key stays in your browser
     end
 
     rect rgba(127, 127, 127, 0.08)
-    Note over You,Getnote: 使用：每次助手调用工具
-    You->>Reader: 在对话里打开得到大脑，提问
-    Reader->>Server: POST /getnote/tools/…<br/>浏览器自动带上 cookie
-    Server->>Server: 在内存里解开 Key
-    Server->>Getnote: 替你搜索、读取或新建笔记
-    Getnote-->>Server: 结果
-    Server-->>Reader: 结果交给助手
-    Note over Server: 请求结束，Key 和笔记内容都不留下
+    Note over You,Getnote: Using it, on every tool call
+    You->>Reader: Turn on 得到大脑 in a conversation and ask
+    Reader->>Server: POST /getnote/tools/…<br/>the browser sends the cookie
+    Server->>Server: Open the key in memory
+    Server->>Getnote: Search, read or create notes for you
+    Getnote-->>Server: The result
+    Server-->>Reader: The result, for the assistant
+    Note over Server: When the request ends, neither the key nor the notes remain
     end
 ```
 
-| 东西                                | 在哪里                                                                                                   |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| 你的 Client ID 和 API Key           | 加密后在你浏览器的 cookie 里，400 天有效，每次使用自动续期                                               |
-| 解开 cookie 的密钥（`PLUG_SECRET`） | 服务器配置里，所有人共用一把，不对应任何用户                                                             |
-| 笔记内容                            | 只在调用时经过服务器，不保存，也不写进日志；助手读过的内容留在 Reader 的对话里，也就是你浏览器的本地存储 |
-| 你的账号、身份、使用记录            | 不存在：服务器没有账号体系，也没有数据库                                                                 |
-- **断开**只清除这个浏览器里的 cookie。要让 Key 彻底失效，到得到大脑开放平台的「API Key」页面删除它。建议单独为 Reader 建一个 Key。
-- **换浏览器或设备**要重新填写一次，因为 Key 只在原来的浏览器里。
-- **工具只读取和新建笔记**，不修改，也不删除。但 API Key 本身有你账号的全部权限，请像对待密码一样对待它。
-- **所有代码都在这个仓库里**，可以自己核对，也可以自己部署一份。
+| What                                          | Where                                                                                                                                                     |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Your Client ID and API Key                    | Encrypted in a cookie in your browser, valid for 400 days and renewed each time it is used                                                                |
+| The key that opens the cookie (`PLUG_SECRET`) | In the server's configuration; one for everyone, tied to no user                                                                                          |
+| Note content                                  | Passes through the server during a call; not kept, not logged. What the assistant reads stays in the Reader conversation, in your browser's local storage |
+| Your account, identity, usage history         | None: the server has no accounts and no database                                                                                                          |
+- **Disconnecting** clears the cookie in this browser only. To revoke the key for good, delete it on the 「API Key」 page of 得到大脑's open platform. A key made just for Reader is easiest to revoke.
+- **Another browser or device** needs the key entered again, since it lives only in the first browser.
+- **The tools only read and create notes**; they never change or delete one. The API Key itself carries your account's full rights, so treat it like a password.
+- **All the code is in this repository**, to check for yourself or to run your own copy.
 
 ## Running locally
 

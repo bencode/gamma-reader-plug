@@ -2,6 +2,7 @@ import type { PluginCard as Card } from '@gamma-reader-plug/shared/plugins'
 import { useCallback, useEffect, useState } from 'react'
 import { loadPlugins } from './api'
 import styles from './app.module.scss'
+import { HowItWorks } from './how-it-works'
 import { PluginCard } from './plugin-card'
 
 type Listing = { kind: 'loading' } | { kind: 'loaded'; plugins: Card[] } | { kind: 'failed' }
@@ -44,17 +45,9 @@ export const App = () => {
             <li>回到 Gamma Reader，输入框下方会出现它的图标。</li>
             <li>在对话里点亮图标，这个对话的助手就能用它。</li>
           </ol>
-          <p>
-            连接信息加密后只存在你的浏览器里，服务器不保存你的任何信息。
-            <a
-              href="https://github.com/bencode/gamma-reader-plug#工作原理"
-              target="_blank"
-              rel="noopener"
-            >
-              查看原理
-            </a>
-          </p>
+          <p>连接信息加密后只存在你的浏览器里，服务器不保存你的任何信息。</p>
         </div>
+        <HowItWorks />
       </header>
       {listing.kind === 'loading' && <p className={styles.note}>正在读取插件…</p>}
       {listing.kind === 'failed' && (

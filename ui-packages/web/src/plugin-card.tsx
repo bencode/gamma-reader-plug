@@ -35,6 +35,21 @@ export const PluginCard = ({ card, onChange }: PluginCardProps) => {
         {status.kind === 'connected' && connector?.revokeHint && (
           <p className={styles.hint}>{connector.revokeHint}</p>
         )}
+        {card.tools.length > 0 && (
+          <details className={styles.tools}>
+            <summary>助手能用的工具（{card.tools.length}）</summary>
+            <dl>
+              {card.tools.map(tool => (
+                <div key={tool.name}>
+                  <dt>
+                    <code>{tool.name}</code>
+                  </dt>
+                  <dd>{tool.description}</dd>
+                </div>
+              ))}
+            </dl>
+          </details>
+        )}
         {error && <p className={styles.error}>{error}</p>}
       </div>
       <div className={styles.actions}>
