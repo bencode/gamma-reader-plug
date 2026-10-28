@@ -29,7 +29,6 @@ export const PluginCard = ({ card, onChange }: PluginCardProps) => {
       <div className={styles.body}>
         <h2>{card.title}</h2>
         <p>{card.summary}</p>
-        {connector?.about && <p className={styles.about}>{connector.about}</p>}
         <p className={styles.status} data-kind={status.kind}>
           <StatusLine status={status} />
         </p>
