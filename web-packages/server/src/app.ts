@@ -32,7 +32,7 @@ export const createApp = (
         summary: plugin.summary,
         icon: iconPath(plugin),
         status: await plugin.status(c),
-        tools: plugin.tools.map(({ name, description }) => ({ name, description })),
+        tools: plugin.tools.map(tool => tool.name),
       })),
     )
     return c.json({ plugins: cards })
@@ -87,7 +87,10 @@ export const createApp = (
   })
 
   if (webRoot) {
-    app.get('/', serveStatic({ root: webRoot, path: 'index.html' }))
+    const page = serveStatic({ root: webRoot, path: 'index.html' })
+    app.get('/', page)
+    // Each plugin's own page; the page routes it in the browser.
+    for (const plugin of plugins) app.get(`/${plugin.name}`, page)
     app.use('/assets/*', serveStatic({ root: webRoot }))
   }
 

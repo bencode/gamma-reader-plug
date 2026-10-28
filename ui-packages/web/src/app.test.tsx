@@ -1,6 +1,7 @@
 import type { PluginCard, PluginStatus } from '@gamma-reader-plug/shared/plugins'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import { App } from './app'
 
@@ -10,7 +11,7 @@ const card = (status: PluginStatus, name = 'getnote'): PluginCard => ({
   summary: 'Notes',
   icon: `/api/${name}/icon.svg`,
   status,
-  tools: [{ name: `${name}_search`, description: 'Search notes' }],
+  tools: [`${name}_search`],
 })
 
 // The plug's server, answering in order for each path: null is 204, a Response is itself.
@@ -21,6 +22,13 @@ const serve = (answers: Record<string, unknown[]>) =>
     if (answer instanceof Response) return answer
     return answer === null ? new Response(null, { status: 204 }) : Response.json(answer)
   })
+
+const show = (path: string) =>
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <App />
+    </MemoryRouter>,
+  )
 
 describe('plug home page', () => {
   it("shows each plugin's state in this browser", async () => {
@@ -36,12 +44,15 @@ describe('plug home page', () => {
         },
       ],
     })
-    render(<App />)
+    show('/')
 
     const list = await screen.findByRole('list', { name: '插件' })
     const [connected, invalid, paid, busy] = within(list).getAllByRole('listitem')
     expect(connected).toHaveTextContent('已连接')
-    expect(connected).toHaveTextContent('助手能用的工具（1）getnote_search')
+    expect(within(connected as HTMLElement).getByRole('link', { name: '详情' })).toHaveAttribute(
+      'href',
+      '/getnote',
+    )
     expect(connected).toHaveTextContent('「API Key」页面删除它')
     expect(within(connected as HTMLElement).getByRole('button', { name: '断开' })).toBeVisible()
     expect(invalid).toHaveTextContent('API Key 已失效')
@@ -66,7 +77,7 @@ describe('plug home page', () => {
       ],
       '/api/getnote/disconnect': [null],
     })
-    render(<App />)
+    show('/')
 
     await user.click(await screen.findByRole('button', { name: '连接' }))
     await user.type(screen.getByLabelText('Client ID'), 'cli_user')
@@ -86,5 +97,15 @@ describe('plug home page', () => {
 
     await user.click(screen.getByRole('button', { name: '断开' }))
     expect(await screen.findByText('未连接')).toBeVisible()
+  })
+
+  it("lists the APIs of the plugin's service and marks the ones its tools use", async () => {
+    serve({ '/api/plugins': [{ plugins: [card({ kind: 'connected' })] }] })
+    show('/getnote')
+
+    expect(await screen.findByRole('heading', { name: '得到大脑相关 API' })).toBeVisible()
+    expect(screen.getByText('POST recall').closest('tr')).toHaveTextContent('✓ getnote_search')
+    expect(screen.getByText('POST note/update').closest('tr')).toHaveTextContent('—')
+    expect(screen.queryByRole('link', { name: '详情' })).toBeNull()
   })
 })

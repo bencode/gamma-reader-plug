@@ -9,11 +9,11 @@ and the page together; copy `.env.example` to `.env` first.
 
 ## Packages
 
-| Package               | Role                                                                 |
-| --------------------- | -------------------------------------------------------------------- |
-| `web-packages/server` | Hono server: the page's API, the manifest, tool calls                |
-| `ui-packages/web`     | The page, in Chinese: each plugin, its state, connect and disconnect |
-| `packages/shared`     | Types both of them use; types only, no runtime code                  |
+| Package               | Role                                                                                    |
+| --------------------- | --------------------------------------------------------------------------------------- |
+| `web-packages/server` | Hono server: the page's API, the manifest, tool calls                                   |
+| `ui-packages/web`     | The page, in Chinese: each plugin, its state, connect and disconnect; a page per plugin |
+| `packages/shared`     | Types both of them use; types only, no runtime code                                     |
 
 `packages/shared` holds only what both sides use. The reader protocol's types live in the server
 (`src/protocol.ts`), since only the server speaks it.
@@ -24,7 +24,9 @@ A plugin is a folder in each package, registered in that package's `plugins/inde
 
 - `web-packages/server/src/plugins/<name>/` defines the `Plugin`: its status, connect routes
   under `/api/<name>`, and tools named `<name>_…`.
-- `ui-packages/web/src/plugins/<name>/` holds its connect component.
+- `ui-packages/web/src/plugins/<name>/` holds its connect component and, in `apis.ts`, the APIs
+  of its service that bear on the plugin, with the tools that call each one, for the plugin's
+  page at `/<name>`.
 
 There is no user database. A plugin keeps its credential in a cookie sealed with `PLUG_SECRET`,
 so a connection belongs to one browser. Tool descriptions are in English, for the model; the page

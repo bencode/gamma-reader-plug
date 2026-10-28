@@ -1,3 +1,6 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
@@ -51,7 +54,7 @@ describe('plug app', () => {
           summary: 'Your notes',
           icon: '/api/notes/icon.svg',
           status: { kind: 'connected' },
-          tools: [{ name: 'notes_search', description: 'Search notes' }],
+          tools: ['notes_search'],
         },
       ],
     })
@@ -110,5 +113,17 @@ describe('plug app', () => {
     expect(((await invalid.json()) as { error: { message: string } }).error.message).toContain(
       'query',
     )
+  })
+
+  it("serves the page at each plugin's own path, and nothing at other paths", async () => {
+    const webRoot = await mkdtemp(join(tmpdir(), 'plug-web-'))
+    await writeFile(join(webRoot, 'index.html'), '<title>plug</title>')
+    try {
+      const served = createApp({ plugOrigin, readerOrigin }, [notes], webRoot)
+      expect(await (await served.request('/notes')).text()).toBe('<title>plug</title>')
+      expect((await served.request('/nothing')).status).toBe(404)
+    } finally {
+      await rm(webRoot, { recursive: true })
+    }
   })
 })

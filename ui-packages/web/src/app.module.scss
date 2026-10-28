@@ -41,97 +41,80 @@
   p {
     margin: 4px 0 0;
   }
+  a {
+    margin-left: 4px;
+  }
 }
-.howItWorks {
-  margin-top: 12px;
+.back {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--muted);
   font-size: 14px;
-  line-height: 1.6;
-  summary {
-    cursor: pointer;
+  text-decoration: none;
+  &:hover {
     color: var(--accent);
   }
-  p,
-  td,
-  ul {
-    color: var(--muted);
+}
+.detailLink {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 13px;
+}
+.apis {
+  margin: 24px 0;
+  code {
+    font-size: 13px;
+  }
+  h2 {
+    margin: 0 0 8px;
+    font-size: 17px;
   }
   table {
     width: 100%;
     border-collapse: collapse;
-    margin: 12px 0;
+    font-size: 14px;
   }
   th,
   td {
-    padding: 6px 8px;
+    padding: 8px;
     border-bottom: 1px solid var(--line);
     text-align: left;
     vertical-align: top;
   }
-  th {
+  thead th {
     white-space: nowrap;
+    font-size: 13px;
     font-weight: 500;
-  }
-  ul {
-    margin: 0;
-    padding-left: 1.2em;
-  }
-}
-.flow {
-  display: flex;
-  gap: 28px;
-  margin: 12px 0;
-  padding: 0;
-  list-style: none;
-  li {
-    position: relative;
-    flex: 1;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--surface);
-  }
-  li + li::before {
-    content: "→";
-    position: absolute;
-    top: 50%;
-    left: -20px;
-    transform: translateY(-50%);
-  }
-  strong {
-    display: block;
-  }
-  span,
-  li + li::before {
     color: var(--muted);
   }
-  @media (max-width: 560px) {
-    flex-direction: column;
-    gap: 22px;
-    li + li::before {
-      content: "↓";
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
+  td:nth-child(2) {
+    white-space: nowrap;
+  }
+  td div {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  td:last-child {
+    color: var(--muted);
+    span {
+      color: var(--accent);
+    }
+    code {
+      color: var(--accent);
     }
   }
-}
-.tools {
-  margin-top: 8px;
-  font-size: 13px;
-  summary {
-    cursor: pointer;
-    color: var(--muted);
+  // A phone shows only the mark; the tool names would not fit.
+  @media (max-width: 560px) {
+    td:last-child code {
+      display: none;
+    }
   }
-  dl {
-    margin: 8px 0 0;
-  }
-  dt {
-    margin-top: 8px;
-  }
-  dd {
-    margin: 2px 0 0;
-    color: var(--muted);
-    line-height: 1.5;
+  .group th {
+    padding-top: 16px;
+    font-weight: 600;
+    background: var(--panel);
   }
 }
 .list {

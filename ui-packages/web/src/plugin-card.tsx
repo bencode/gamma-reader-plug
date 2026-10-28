@@ -1,13 +1,14 @@
 import type { PluginCard as Card, PluginStatus } from '@gamma-reader-plug/shared/plugins'
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { post } from './api'
 import styles from './app.module.scss'
 import { connectors } from './plugins'
 
-type PluginCardProps = { card: Card; onChange: () => Promise<void> }
+type PluginCardProps = { card: Card; onChange: () => Promise<void>; detailLink?: boolean }
 
 // One plugin: what it does, whether this browser has it connected, and the way to change that.
-export const PluginCard = ({ card, onChange }: PluginCardProps) => {
+export const PluginCard = ({ card, onChange, detailLink = true }: PluginCardProps) => {
   const connector = connectors[card.name]
   const [error, setError] = useState<string>()
   const disconnect = async () => {
@@ -35,20 +36,10 @@ export const PluginCard = ({ card, onChange }: PluginCardProps) => {
         {status.kind === 'connected' && connector?.revokeHint && (
           <p className={styles.hint}>{connector.revokeHint}</p>
         )}
-        {card.tools.length > 0 && (
-          <details className={styles.tools}>
-            <summary>助手能用的工具（{card.tools.length}）</summary>
-            <dl>
-              {card.tools.map(tool => (
-                <div key={tool.name}>
-                  <dt>
-                    <code>{tool.name}</code>
-                  </dt>
-                  <dd>{tool.description}</dd>
-                </div>
-              ))}
-            </dl>
-          </details>
+        {detailLink && (
+          <Link className={styles.detailLink} to={`/${card.name}`}>
+            详情
+          </Link>
         )}
         {error && <p className={styles.error}>{error}</p>}
       </div>
