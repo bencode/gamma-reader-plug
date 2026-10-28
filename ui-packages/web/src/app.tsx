@@ -1,11 +1,16 @@
-import type { PluginCard as Card } from '@gamma-reader-plug/shared/plugins'
+import type { PluginCard } from '@gamma-reader-plug/shared/plugins'
 import { useCallback, useEffect, useState } from 'react'
+import { Route, Routes } from 'react-router'
 import { loadPlugins } from './api'
 import styles from './app.module.scss'
-import { HowItWorks } from './how-it-works'
-import { PluginCard } from './plugin-card'
+import { Home } from './home'
+import { PluginPage } from './plugin-page'
 
-type Listing = { kind: 'loading' } | { kind: 'loaded'; plugins: Card[] } | { kind: 'failed' }
+// The plugin list as the pages see it while it loads.
+export type Listing =
+  | { kind: 'loading' }
+  | { kind: 'loaded'; plugins: PluginCard[] }
+  | { kind: 'failed' }
 
 export const App = () => {
   const [listing, setListing] = useState<Listing>({ kind: 'loading' })
@@ -39,32 +44,11 @@ export const App = () => {
             GitHub
           </a>
         </div>
-        <div className={styles.intro}>
-          <ol>
-            <li>在下面连接插件。</li>
-            <li>回到 Gamma Reader，输入框下方会出现它的图标。</li>
-            <li>在对话里点亮图标，这个对话的助手就能用它。</li>
-          </ol>
-          <p>连接信息加密后只存在你的浏览器里，服务器不保存你的任何信息。</p>
-        </div>
-        <HowItWorks />
       </header>
-      {listing.kind === 'loading' && <p className={styles.note}>正在读取插件…</p>}
-      {listing.kind === 'failed' && (
-        <p className={styles.note}>
-          插件列表没能读取。
-          <button type="button" className={styles.link} onClick={() => void reload()}>
-            重试
-          </button>
-        </p>
-      )}
-      {listing.kind === 'loaded' && (
-        <ul className={styles.list} aria-label="插件">
-          {listing.plugins.map(card => (
-            <PluginCard key={card.name} card={card} onChange={reload} />
-          ))}
-        </ul>
-      )}
+      <Routes>
+        <Route path="/" element={<Home listing={listing} reload={reload} />} />
+        <Route path="/:name" element={<PluginPage listing={listing} reload={reload} />} />
+      </Routes>
     </main>
   )
 }

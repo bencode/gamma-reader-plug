@@ -134,6 +134,88 @@
     line-height: 1.5;
   }
 }
+.back {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+  &:hover {
+    color: var(--accent);
+  }
+}
+.detailLink {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 13px;
+}
+.apis {
+  margin: 24px 0;
+  code {
+    font-size: 13px;
+  }
+  h2 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 0 8px;
+    font-size: 17px;
+    span {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--muted);
+    }
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th,
+  td {
+    padding: 8px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+  thead th {
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  td:nth-child(2) {
+    white-space: nowrap;
+  }
+  td div {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  td:last-child {
+    color: var(--muted);
+    span {
+      color: var(--accent);
+    }
+    code {
+      color: var(--accent);
+    }
+  }
+  // The tools are listed below the table, so a phone shows only the mark.
+  @media (max-width: 560px) {
+    td:last-child code {
+      display: none;
+    }
+  }
+  .group th {
+    padding-top: 16px;
+    font-weight: 600;
+    background: var(--panel);
+  }
+}
 .list {
   display: grid;
   gap: 12px;
